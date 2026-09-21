@@ -1,22 +1,24 @@
-import { Pressable, View, Text } from "react-native";
+// components/RiwayatList.tsx (diperbarui)
+import { View, Text } from "react-native";
+import { Link } from "expo-router";
 
 interface RiwayatListProps {
   daftarKota: string[];
-  onPilihKota: (kota: string) => void;
 }
 
-export default function RiwayatList({ daftarKota, onPilihKota }: RiwayatListProps) {
+export default function RiwayatList({ daftarKota }: RiwayatListProps) {
   return (
     <View>
-      <Text><b>Riwayat Pencarian</b></Text>
-      <View>
       {daftarKota.map((kota) => (
-        <Pressable key={kota} onPress={() => onPilihKota(kota)}>
+        // Format objek pada href lolos pengecekan TypeScript Expo Router
+        <Link
+          key={kota}
+          href={{ pathname: "/detail/[kota]", params: { kota } }}
+          accessibilityLabel={`Buka detail cuaca ${kota}`}
+        >
           <Text>{kota}</Text>
-        </Pressable>
+        </Link>
       ))}
     </View>
-    </View>
-    
   );
 }

@@ -13,11 +13,13 @@ export default function SearchBox({ onCari }: SearchBoxProps) {
     <View style={{ flexDirection: "row", gap: 8 }}>
       <TextInput
         placeholder="Cari kota"
+        accessibilityLabel="Masukkan nama kota untuk mencari cuaca"
         value={teks}
         onChangeText={setTeks}
         style={{ flex: 1, borderWidth: 1, padding: 8 }}
       />
-      <Button title="Cari" disabled={!teksRapi} onPress={() => onCari(teksRapi)} />
+      <Button title="Cari" disabled={!teksRapi} onPress={() => onCari(teksRapi)} accessibilityLabel="Cari cuaca untuk kota yang dimasukkan" />
+
     </View>
   );
 }
