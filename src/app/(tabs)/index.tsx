@@ -1,103 +1,88 @@
-import { useState, useEffect } from "react";
-import { useWindowDimensions } from "react-native";
+// src/app/(tabs)/index.tsx
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Button, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import WeatherCard from "../../components/WeatherCard";
+import { HasilGeocoding } from "../../../types/geocoding";
 import SearchBox from "../../components/SearchBox";
-import RiwayatList from "../../components/RiwayatList";
-import IndikatorAQI from "../../components/IndikatorAQI";
-import { TingkatAQI } from "../../../types/cuaca";
-
-interface DataCuacaAktif {
-  kota: string;
-  suhu: number;
-  indeksAQI: number;
-  tingkatAQI: TingkatAQI;
-  diperbaruiPada: string;
-}
-
-function rapikanNamaKota(kota: string) {
-  return kota
-    .trim()
-    .split(/\s+/)
-    .map((kata) => kata.charAt(0).toUpperCase() + kata.slice(1).toLowerCase())
-    .join(" ");
-}
-
-function buatDataCuaca(kota: string): DataCuacaAktif {
-  const totalKarakter = kota
-    .split("")
-    .reduce((total, karakter) => total + karakter.charCodeAt(0), 0);
-  const indeksAQI = 25 + (totalKarakter % 120);
-  const tingkatAQI: TingkatAQI =
-    indeksAQI <= 50
-      ? "BAIK"
-      : indeksAQI <= 100
-      ? "SEDANG"
-      : "TIDAK_SEHAT";
-
-  return {
-    kota,
-    suhu: 24 + (totalKarakter % 12),
-    indeksAQI,
-    tingkatAQI,
-    diperbaruiPada: new Date().toLocaleString("id-ID"),
-  };
-}
+import WeatherCard from "../../components/WeatherCard";
+import { useDebounce } from "../../hooks/use-debounce";
+import { cariKota } from "../../services/geocodingService";
 
 export default function HalamanUtama() {
-  const [dataCuacaAktif, setDataCuacaAktif] = useState<DataCuacaAktif>(() =>
-    buatDataCuaca("Pekalongan")
-  );
-  const [riwayat, setRiwayat] = useState<string[]>(["Pekalongan"]);
+  const [teksCari, setTeksCari] = useState("");
+  const [hasil, setHasil] = useState<HasilGeocoding[]>([]);
+  const [sedangMemuat, setSedangMemuat] = useState(false);
+  const [pesanError, setPesanError] = useState<string | null>(null);
 
-  const { width } = useWindowDimensions();
-  const isTablet = width > 768;
+  const teksTertunda = useDebounce(teksCari, 800);
 
   useEffect(() => {
-    console.log("Kota aktif berubah menjadi:", dataCuacaAktif.kota);
-  }, [dataCuacaAktif.kota]);
-
-  function handleCari(kota: string) {
-    const kotaRapi = rapikanNamaKota(kota);
-
-    if (!kotaRapi) {
+    if (teksTertunda.trim().length === 0) {
+      setHasil([]);
+      setPesanError(null);
       return;
     }
+    ambilData(teksTertunda);
+  }, [teksTertunda]);
 
-    setDataCuacaAktif(buatDataCuaca(kotaRapi));
-    setRiwayat((daftarSebelumnya) =>
-      daftarSebelumnya.some(
-        (item) => item.toLowerCase() === kotaRapi.toLowerCase()
-      )
-        ? daftarSebelumnya
-        : [...daftarSebelumnya, kotaRapi]
-    );
+  async function ambilData(nama: string) {
+    setSedangMemuat(true);
+    setPesanError(null);
+    try {
+      const data = await cariKota(nama);
+      setHasil(data);
+    } catch (err) {
+      setPesanError("Gagal mengambil data. Periksa koneksi internet Anda.");
+    } finally {
+      setSedangMemuat(false);
+    }
   }
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        padding: isTablet ? 32 : 16,
-        gap: 16,
-      }}
-    >
-      <SearchBox onCari={handleCari} />
-      <WeatherCard
-        kota={dataCuacaAktif.kota}
-        suhu={dataCuacaAktif.suhu}
-        tingkatAQI={dataCuacaAktif.tingkatAQI}
-      />
-      <RiwayatList 
-        daftarKota={riwayat} 
-      />
-      <IndikatorAQI
-        kota={dataCuacaAktif.kota}
-        indeksAQI={dataCuacaAktif.indeksAQI}
-        tingkat={dataCuacaAktif.tingkatAQI}
-        diperbaruiPada={dataCuacaAktif.diperbaruiPada}
-      />
+    <SafeAreaView style={{ flex: 1, padding: 16, gap: 16 }}>
+      <SearchBox onCari={setTeksCari} />
+
+      {sedangMemuat && <ActivityIndicator size="large" color="#0000ff" />}
+
+      {pesanError && (
+        <View style={{ alignItems: "center", gap: 8 }}>
+          <Text
+            accessibilityLabel="Pesan Error: ${pesanError}"
+            style={{ color: "red", textAlign: "center" }}
+          >
+            {pesanError}
+          </Text>
+          <Button title="Coba Lagi" onPress={() => ambilData(teksTertunda)} />
+        </View>
+      )}
+
+      {!sedangMemuat &&
+        !pesanError &&
+        teksTertunda.length > 0 &&
+        hasil.length === 0 && (
+          <Text
+            accessibilityLabel="Pesan kosong: Kota tidak ditemukan"
+            style={{ textAlign: "center" }}
+          >
+            Kota tidak ditemukan
+          </Text>
+        )}
+
+      {!sedangMemuat && !pesanError && hasil.length > 0 && (
+        <Text accessibilityLabel={`Ditemukan ${hasil.length} kota`}>
+          Ditemukan {hasil.length} kota
+        </Text>
+      )}
+
+      {hasil.map((kota) => (
+        <WeatherCard
+          key={kota.id}
+          kota={kota.name}
+          suhu={29} // Suhu statis sementara, bisa disesuaikan dengan data API cuaca nanti
+          tingkatAQI="BAIK"
+        />
+      ))}
     </SafeAreaView>
   );
 }
