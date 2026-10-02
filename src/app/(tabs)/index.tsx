@@ -18,21 +18,58 @@ export default function HalamanUtama() {
   const teksTertunda = useDebounce(teksCari, 800);
 
   useEffect(() => {
-    if (teksTertunda.trim().length === 0) {
+    const namaKota = teksTertunda.trim();
+
+    if (!namaKota) {
       setHasil([]);
       setPesanError(null);
+      setSedangMemuat(false);
       return;
     }
-    ambilData(teksTertunda);
+
+    let dibatalkan = false;
+
+    async function ambilData() {
+      setSedangMemuat(true);
+      setPesanError(null);
+      setHasil([]);
+
+      try {
+        const data = await cariKota(namaKota);
+        if (!dibatalkan) {
+          setHasil(data);
+        }
+      } catch {
+        if (!dibatalkan) {
+          setPesanError("Gagal mengambil data. Periksa koneksi internet Anda.");
+        }
+      } finally {
+        if (!dibatalkan) {
+          setSedangMemuat(false);
+        }
+      }
+    }
+
+    void ambilData();
+
+    return () => {
+      dibatalkan = true;
+    };
   }, [teksTertunda]);
 
-  async function ambilData(nama: string) {
+  async function cobaLagi() {
+    const namaKota = teksTertunda.trim();
+
+    if (!namaKota) {
+      return;
+    }
+
     setSedangMemuat(true);
     setPesanError(null);
     try {
-      const data = await cariKota(nama);
+      const data = await cariKota(namaKota);
       setHasil(data);
-    } catch (err) {
+    } catch {
       setPesanError("Gagal mengambil data. Periksa koneksi internet Anda.");
     } finally {
       setSedangMemuat(false);
@@ -48,18 +85,18 @@ export default function HalamanUtama() {
       {pesanError && (
         <View style={{ alignItems: "center", gap: 8 }}>
           <Text
-            accessibilityLabel="Pesan Error: ${pesanError}"
+            accessibilityLabel={`Pesan error: ${pesanError}`}
             style={{ color: "red", textAlign: "center" }}
           >
             {pesanError}
           </Text>
-          <Button title="Coba Lagi" onPress={() => ambilData(teksTertunda)} />
+          <Button title="Coba Lagi" onPress={cobaLagi} />
         </View>
       )}
 
       {!sedangMemuat &&
         !pesanError &&
-        teksTertunda.length > 0 &&
+        teksTertunda.trim().length > 0 &&
         hasil.length === 0 && (
           <Text
             accessibilityLabel="Pesan kosong: Kota tidak ditemukan"
