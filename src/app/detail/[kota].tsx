@@ -1,7 +1,7 @@
 // app/detail/[kota].tsx
-import { View } from "react-native";
+import { Button, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import WeatherCard from "../../components/WeatherCard";
 
 function buatDataCuaca(kota: string) {
@@ -33,9 +33,11 @@ export default function HalamanDetail() {
 				suhu={dataCuaca.suhu}
 				tingkatAQI={dataCuaca.tingkatAQI}
 			/>
-			<Link href="/tambah-favorit" accessibilityLabel={`Tambah ${namaKota} ke favorit`}>
-				Tambah Favorit
-			</Link>
+			<Button
+				title="Tambahkan ke Favorit"
+				accessibilityLabel={`Tambah ${namaKota} ke favorit`}
+				onPress={() => router.push({ pathname: "/tambah-favorit", params: { kota: namaKota } })}
+			/>
 		</View>
 	);
 }
