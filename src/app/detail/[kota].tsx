@@ -22,9 +22,16 @@ function buatDataCuaca(kota: string) {
 }
 
 export default function HalamanDetail() {
-	const { kota } = useLocalSearchParams<{ kota: string }>();
+	const { kota, id, nama, lat, lon } = useLocalSearchParams<{
+		kota: string;
+		id?: string;
+		nama?: string;
+		lat?: string;
+		lon?: string;
+	}>();
 	const namaKota = kota ?? "Kota tidak diketahui";
 	const dataCuaca = buatDataCuaca(namaKota);
+	const parameterFavoritLengkap = id && nama && lat && lon;
 
 	return (
 		<View style={{ padding: 16, gap: 16 }}>
@@ -33,9 +40,17 @@ export default function HalamanDetail() {
 				suhu={dataCuaca.suhu}
 				tingkatAQI={dataCuaca.tingkatAQI}
 			/>
-			<Link href="/tambah-favorit" accessibilityLabel={`Tambah ${namaKota} ke favorit`}>
-				Tambah Favorit
-			</Link>
+			{parameterFavoritLengkap && (
+				<Link
+					href={{
+						pathname: "/tambah-favorit",
+						params: { id, nama, lat, lon },
+					}}
+					accessibilityLabel={`Tambah ${namaKota} ke favorit`}
+				>
+					Tambah Favorit
+				</Link>
+			)}
 		</View>
 	);
 }
