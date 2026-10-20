@@ -1,56 +1,36 @@
-# Welcome to your Expo app 👋
+# Jelajah Aman ⛅
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplikasi pemantau cuaca dan kualitas udara (AQI) lintas platform (Android, iOS, Web) berbasis lokasi dengan pendekatan arsitektur **Offline-First**.
 
-## Get started
+Dibuat untuk memenuhi tugas praktikum mata kuliah **Pemrograman Berbasis Platform (INF2528)** - Informatika, UIN K.H. Abdurrahman Wahid Pekalongan.
 
-1. Install dependencies
+---
 
+## 📖 Status Data dan Mode Offline
+
+Aplikasi menerapkan sistem caching lokal menggunakan SQLite (`expo-sqlite`) dengan aturan:
+
+1. **`cache-segar`**: Data cuaca dan kualitas udara diambil dari penyimpanan lokal perangkat jika umur cache masih berada di bawah ambang batas kesegaran (`TTL_SEGAR_MS` = 30 menit). Aplikasi tidak perlu memanggil API internet sehingga menghemat kuota dan memuat secara instan.
+2. **`cache-basi`**: Data cuaca tersimpan yang umurnya sudah melebihi 30 menit (stale) dan digunakan sebagai cadangan darurat saat jaringan internet mati/offline. Data tetap dapat dibaca oleh pengguna daripada menampilkan layar kosong atau error.
+3. **`first-run offline`**: Kondisi ketika pengguna membuka kota tertentu untuk pertama kali dalam keadaan tanpa koneksi internet (atau setelah seluruh cache dihapus). Karena belum ada salinan di SQLite, aplikasi secara transparan menampilkan pesan galat yang informatif dan menyediakan tombol "Coba Lagi".
+
+**Mengapa label status data penting bagi pengguna?**
+Label status data (seperti *"Data terbaru dari internet"*, *"Data tersimpan (masih segar)"*, dan *"Mode offline - data tersimpan mungkin sudah usang"*) memberikan transparansi informasi yang jujur kepada pengguna. Hal ini memastikan pengguna mengetahui apakah informasi cuaca yang mereka lihat adalah kondisi terkini (*real-time*) atau data historis terdahulu, sehingga pengguna dapat membuat keputusan aktivitas luar ruangan dengan tepat dan aman.
+
+---
+
+## 🚀 Memulai Aplikasi
+
+1. Pasang dependensi:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. Jalankan aplikasi dengan Expo:
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+3. Buka di platform target:
+   - Tekan `w` untuk membuka di browser (Expo Web)
+   - Pindai QR Code menggunakan aplikasi **Expo Go** pada perangkat Android/iOS
