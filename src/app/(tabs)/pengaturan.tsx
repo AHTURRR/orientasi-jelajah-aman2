@@ -1,11 +1,30 @@
 // app/(tabs)/pengaturan.tsx
-import { Text } from "react-native";
+import { useState } from "react";
+import { Button, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { hapusSemuaCache } from "../../services/cacheRepository";
+
 export default function TabPengaturan() {
+  const [pesan, setPesan] = useState<string | null>(null);
+
+  async function hapusDataTersimpan() {
+    try {
+       await hapusSemuaCache();
+      setPesan("Data cuaca tersimpan sudah dihapus.");
+    } catch {
+      setPesan("Data cuaca gagal dihapus. Silakan coba lagi.");
+    }
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, padding: 16 }}>
+    <SafeAreaView style={{ flex: 1, padding: 16, gap: 12 }}>
       <Text style={{ fontSize: 18, fontWeight: "bold" }}>Jelajah Aman</Text>
       <Text>Versi 1.0.0</Text>
+      <Button
+        title="Hapus Data Cuaca Tersimpan"
+        onPress={hapusDataTersimpan}
+      />
+      {pesan && <Text accessibilityLabel={pesan}>{pesan}</Text>}
     </SafeAreaView>
   );
 }
