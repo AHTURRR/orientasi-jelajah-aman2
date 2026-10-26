@@ -17,8 +17,6 @@ interface BarisCache {
   disimpan_pada: number;
 }
 
-type BarisRingkasan = Omit<BarisCache, "cuaca_json" | "aqi_json">;
-
 export function buatKunci(latitude: number, longitude: number): string {
   return `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
 }
@@ -70,19 +68,39 @@ export async function ambilCache(
 
 export async function daftarKotaTersimpan(): Promise<RingkasanKotaTersimpan[]> {
   const db = await ambilDatabase();
-  const semua = await db.getAllAsync<BarisRingkasan>(
-    `SELECT kunci, kota_id, nama_kota, latitude, longitude, disimpan_pada
-     FROM cache_cuaca ORDER BY disimpan_pada DESC LIMIT 5`,
+  const semua = await db.getAllAsync<BarisCache>(
+    `SELECT kunci, kota_id, nama_kota, latitude, longitude, cuaca_json, aqi_json, disimpan_pada
+     FROM cache_cuaca ORDER BY disimpan_pada DESC LIMIT 10`,
   );
 
-  return semua.map((baris) => ({
-    kunci: baris.kunci,
-    id: baris.kota_id,
-    nama: baris.nama_kota,
-    latitude: baris.latitude,
-    longitude: baris.longitude,
-    disimpanPada: baris.disimpan_pada,
-  }));
+  return semua.map((baris) => {
+    let suhuTerakhir: number | undefined;
+    let indeksAQITerakhir: number | undefined;
+    try {
+      const cuaca = JSON.parse(baris.cuaca_json) as DataCuacaLengkap;
+      suhuTerakhir = cuaca?.saatIni?.suhu;
+      const aqi = JSON.parse(baris.aqi_json) as DataKualitasUdara;
+      indeksAQITerakhir = aqi?.indeksAQI;
+    } catch {
+      // Abaikan jika JSON gagal di-parse pada ringkasan
+    }
+
+    return {
+      kunci: baris.kunci,
+      id: baris.kota_id,
+      nama: baris.nama_kota,
+      latitude: baris.latitude,
+      longitude: baris.longitude,
+      disimpanPada: baris.disimpan_pada,
+      suhuTerakhir,
+      indeksAQITerakhir,
+    };
+  });
+}
+
+export async function hapusCacheKota(kunci: string): Promise<void> {
+  const db = await ambilDatabase();
+  await db.runAsync("DELETE FROM cache_cuaca WHERE kunci = ?", [kunci]);
 }
 
 export async function bersihkanCacheLama(batasUmurMs: number): Promise<void> {
