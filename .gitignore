@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Word temporary lock files
+~$*.docx
