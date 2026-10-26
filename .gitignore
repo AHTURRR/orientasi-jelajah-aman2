@@ -44,3 +44,8 @@ example
 
 # Word temporary lock files
 ~$*.docx
+
+# Laporan Praktikum & UTS (disimpan lokal saja)
+LAPORAN-*.md
+LAPORAN-*.docx
+CATATAN-PERUBAHAN.md
