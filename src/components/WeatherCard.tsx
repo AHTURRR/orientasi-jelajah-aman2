@@ -1,12 +1,20 @@
 import { Text, View } from "react-native";
 import { TingkatAQI, WeatherCardProps } from "../../types/cuaca";
 import { spacing, typeScale } from "../constants/styles";
+import { useAppTheme } from "../context/ThemeContext";
 
-const warnaPerTingkat: Record<TingkatAQI, string> = {
-  BAIK: "green",
-  SEDANG: "goldenrod",
-  TIDAK_SEHAT: "orange",
-  BERBAHAYA: "crimson",
+const warnaPerTingkatTerang: Record<TingkatAQI, string> = {
+  BAIK: "#15803D",
+  SEDANG: "#B45309",
+  TIDAK_SEHAT: "#C2410C",
+  BERBAHAYA: "#B91C1C",
+};
+
+const warnaPerTingkatGelap: Record<TingkatAQI, string> = {
+  BAIK: "#4ADE80",
+  SEDANG: "#FBBF24",
+  TIDAK_SEHAT: "#FB923C",
+  BERBAHAYA: "#F87171",
 };
 
 export default function WeatherCard({
@@ -15,6 +23,12 @@ export default function WeatherCard({
   tingkatAQI,
   indeksAQI,
 }: WeatherCardProps) {
+  const { warna, skemaAktif } = useAppTheme();
+  const warnaAQI =
+    skemaAktif === "dark"
+      ? warnaPerTingkatGelap[tingkatAQI]
+      : warnaPerTingkatTerang[tingkatAQI];
+
   const teksAQI =
     indeksAQI === undefined
       ? `AQI: ${tingkatAQI}`
@@ -30,18 +44,39 @@ export default function WeatherCard({
       accessibilityLabel={labelAksesibilitas}
       style={{
         padding: spacing.sedang,
-        borderRadius: 8,
-        backgroundColor: "#F4F7FA",
+        borderRadius: 12,
+        backgroundColor: warna.card,
+        borderWidth: 1,
+        borderColor: warna.border,
+        gap: 4,
       }}
     >
-      <Text style={{ fontWeight: "bold", fontSize: typeScale.judul }}>
+      <Text
+        style={{
+          fontWeight: "bold",
+          fontSize: typeScale.judul,
+          color: warna.text,
+        }}
+      >
         {kota}
       </Text>
-      <Text style={{ fontSize: typeScale.subjudul }}>
+      <Text
+        style={{
+          fontSize: 32,
+          fontWeight: "bold",
+          color: warna.primary,
+        }}
+      >
         {suhu}
         {"\u00b0"}C
       </Text>
-      <Text style={{ color: warnaPerTingkat[tingkatAQI], fontSize: typeScale.isi }}>
+      <Text
+        style={{
+          color: warnaAQI,
+          fontSize: typeScale.isi,
+          fontWeight: "600",
+        }}
+      >
         {teksAQI}
       </Text>
     </View>

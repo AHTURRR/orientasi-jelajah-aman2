@@ -1,9 +1,11 @@
-// src/app/tambah-favorit.tsx
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Button, Text, View } from "react-native";
+import { useAppTheme } from "../context/ThemeContext";
 import { tambahFavorit } from "../services/favoritStorage";
+
 export default function ModalTambahFavorit() {
+  const { warna } = useAppTheme();
   const { id, nama, lat, lon } = useLocalSearchParams<{
     id: string;
     nama: string;
@@ -23,7 +25,9 @@ export default function ModalTambahFavorit() {
       !Number.isFinite(latitude) ||
       !Number.isFinite(longitude)
     ) {
-      setPesanError("Data kota tidak lengkap. Silakan kembali dan pilih kota lagi.");
+      setPesanError(
+        "Data kota tidak lengkap. Silakan kembali dan pilih kota lagi.",
+      );
       return;
     }
 
@@ -45,14 +49,38 @@ export default function ModalTambahFavorit() {
   }
 
   return (
-    <View style={{ padding: 16, gap: 16 }}>
-      <Text>Tambahkan {nama} ke daftar favorit?</Text>
-      {pesanError && <Text style={{ color: "red" }}>{pesanError}</Text>}
-      <Button
-        title={sedangMenyimpan ? "Menyimpan..." : "Simpan"}
-        onPress={simpan}
-        disabled={sedangMenyimpan}
-      />
+    <View
+      style={{
+        flex: 1,
+        padding: 16,
+        gap: 16,
+        backgroundColor: warna.background,
+      }}
+    >
+      <View
+        style={{
+          padding: 16,
+          borderRadius: 12,
+          backgroundColor: warna.surface,
+          borderWidth: 1,
+          borderColor: warna.border,
+          gap: 12,
+        }}
+      >
+        <Text style={{ fontSize: 16, color: warna.text }}>
+          Tambahkan <Text style={{ fontWeight: "bold" }}>{nama}</Text> ke daftar
+          favorit?
+        </Text>
+        {pesanError && (
+          <Text style={{ color: warna.danger }}>{pesanError}</Text>
+        )}
+        <Button
+          title={sedangMenyimpan ? "Menyimpan..." : "Simpan"}
+          color={warna.primary}
+          onPress={simpan}
+          disabled={sedangMenyimpan}
+        />
+      </View>
     </View>
   );
 }
